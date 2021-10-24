@@ -35,12 +35,17 @@ def shuffled(iterable):
 class Problem:
 
     def __init__(self, initial, goal=None):
+        """The constructor specifies the initial state, and possibly a goal
+        state, if there is a unique goal. Your subclass's constructor can add
+        other arguments."""
         self.initial = initial
         self.goal = goal
 
     def actions(self, state):
         """Return the actions that can be executed in the given
-        state."""
+        state. The result would typically be a list, but if there are
+        many actions, consider yielding them one at a time in an
+        iterator, rather than building them all at once."""
         raise NotImplementedError
 
     def result(self, state, action):
@@ -50,7 +55,10 @@ class Problem:
         raise NotImplementedError
 
     def goal_test(self, state):
-        """Return True if the state is a goal."""
+        """Return True if the state is a goal. The default method compares the
+        state to self.goal or checks for state in self.goal if it is a
+        list, as specified in the constructor. Override this method if
+        checking against a single self.goal is not enough."""
         if isinstance(self.goal, list):
             return is_in(state, self.goal)
         else:
@@ -95,7 +103,9 @@ class CSP(Problem):
         self.nassigns += 1
 
     def unassign(self, var, assignment):
-        """Remove {var: val} from assignment."""
+        """Remove {var: val} from assignment.
+        DO NOT call this if you are changing a variable to a new value;
+        just call assign for that."""
         if var in assignment:
             del assignment[var]
 
@@ -310,7 +320,7 @@ def mac(csp, var, value, assignment, removals, constraint_propagation=AC3):
 
 # The search, proper
 
-def backtracking_search(csp, select_unassigned_variable=first_unassigned_variable,
+def backtracking_search(csp, color, select_unassigned_variable=first_unassigned_variable,
                         order_domain_values=unordered_domain_values, inference=no_inference):
 
     def backtrack(assignment):
@@ -332,7 +342,7 @@ def backtracking_search(csp, select_unassigned_variable=first_unassigned_variabl
     result = backtrack({})
     assert result is None or csp.goal_test(result)
     best_solution = []
-    color_dict = {k: v for v, k in enumerate(color_names)}
+    color_dict = {k: v for v, k in enumerate(color)}
 
     for i in range(len(result)):
         best_solution.append(color_dict[result[str(i)]])
@@ -410,7 +420,7 @@ def convertIntoStr(matrix):
 
 def Run(matrix, color):
         problem = MapColoringCSP(color, matrix)
-        best_solution = backtracking_search(problem, select_unassigned_variable=mrv, order_domain_values=lcv, inference=mac)
+        best_solution = backtracking_search(problem, color, select_unassigned_variable=mrv, order_domain_values=lcv, inference=mac)
         return best_solution
         
 
