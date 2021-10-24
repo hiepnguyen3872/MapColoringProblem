@@ -1,0 +1,1 @@
+Hàm Run(matrix, color) nhận vào ma trận kề và list màu, trả về list các màu tương ứng với từng bang
