@@ -1,0 +1,8 @@
+hàm khởi tạo __init__(path): nhận vào đường dẫn đến file hình ảnh path
+
+hàm img_2_matrix(): chuyển hình ảnh thành ma trận kề
+
+hàm get_adjacency_matrix(): Trả về ma trận kề cho các thuật toán giải quyết
+
+hàm colorize_map(path, solution): tô màu bản đồ theo mảng solution(output của các thuật toán giải quyết) và lưu bản đồ đã tô màu vào vị trí đường dẫn path
+
