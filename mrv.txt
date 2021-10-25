@@ -1,0 +1,1 @@
+Sử dụng hàm run_mrv(matrix, colors)
