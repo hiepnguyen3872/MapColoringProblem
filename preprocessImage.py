@@ -6,8 +6,8 @@ from matplotlib import pyplot as plt
 
 
 class PreprocessImage:
-    def __init__(self, map_image_path):
-        self.MAP_IMAGE_PATH = map_image_path
+    def __init__(self, img):
+        self.MAP_IMAGE_PATH = 0
         self.ESCAPE_KEY_CHARACTER = 27
         self.NO_COLOR = -1
         self.NOT_MARKED = -1
@@ -26,7 +26,7 @@ class PreprocessImage:
         self.SHARPEN_KERNEL = np.array([[-1, -1, -1], [-1, 9, -1], [-1, -1, -1]])
         self.MAXIMUM_IMAGE_WIDTH = 1000
         self.MAXIMUM_IMAGE_HEIGHT = 1000
-        self.image = cv2.imread(self.MAP_IMAGE_PATH, cv2.IMREAD_COLOR)
+        self.image = img
         self.height = len(self.image)
         self.width = len(self.image[0])
         if self.width > self.MAXIMUM_IMAGE_WIDTH or self.height > self.MAXIMUM_IMAGE_HEIGHT:
@@ -210,11 +210,11 @@ class PreprocessImage:
         cv2.putText(self.image, str(node.id), (int(mean_x), int(mean_y)), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 1,
                     cv2.LINE_AA)
 
-    def colorize_map(self, path, best_solution):
+    def colorize_map(self, best_solution):
         for i in range(len(self.nodes)):
             self.change_region_color(self.nodes[i], self.COLORING_COLORS[best_solution[i]])
             pass
-        cv2.imwrite(path, self.image)
+        return self.image
 
     def img_2_matrix(self):
         self.apply_threshold()
