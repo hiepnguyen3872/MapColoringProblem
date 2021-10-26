@@ -189,8 +189,7 @@ class PreprocessImage:
 
     def colorize_map(self, best_solution):
         for i in range(len(self.nodes)):
-            self.change_region_color(self.nodes[i], self.COLORING_COLORS[best_solution[0]])
-            pass
+            self.change_region_color(self.nodes[i], self.COLORING_COLORS[best_solution[i]])
         return self.image
 
     def img_2_matrix(self):
@@ -213,22 +212,22 @@ class PreprocessImage:
         return self.adj_matrix
 
 
-if __name__ == "__main__":
-    print('Please wait for preprocessing...')
-    start = time.time()
-    preImg = PreprocessImage(cv2.imread("img/usa.jpg"))
-    preImg.img_2_matrix()
-    end = time.time()
-    print('Preprocessing finished.')
-    print("number node: ", len(preImg.nodes))
-    for node in preImg.nodes:
-        print("node: ", node.id)
-        for adj in node.adj:
-            print(adj)
-        print("--" * 10)
-    print("time execute: ", (end - start))
-    print("matrix", preImg.get_adjacency_matrix())
-    cv2.imshow("result", preImg.colorize_map([0]))
-    cv2.waitKey(0)
-    cv2.destroyAllWindows()
+# if __name__ == "__main__":
+#     print('Please wait for preprocessing...')
+#     start = time.time()
+#     preImg = PreprocessImage(cv2.imread("img/usa.jpg"))
+#     preImg.img_2_matrix()
+#     end = time.time()
+#     print('Preprocessing finished.')
+#     print("number node: ", len(preImg.nodes))
+#     for node in preImg.nodes:
+#         print("node: ", node.id)
+#         for adj in node.adj:
+#             print(adj)
+#         print("--" * 10)
+#     print("time execute: ", (end - start))
+#     print("matrix", preImg.get_adjacency_matrix())
+#     cv2.imshow("result", preImg.colorize_map([0]))
+#     cv2.waitKey(0)
+#     cv2.destroyAllWindows()
 
