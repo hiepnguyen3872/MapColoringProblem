@@ -19,7 +19,7 @@ def first(iterable, default=None):
 
 identity = lambda x: x
 
-color_names = ['Red','Green','Blue']
+# color_names = ['Red','Green','Blue']
 
 
 def argmin_random_tie(seq, key=identity):
@@ -35,59 +35,29 @@ def shuffled(iterable):
 class Problem:
 
     def __init__(self, initial, goal=None):
-        """The constructor specifies the initial state, and possibly a goal
-        state, if there is a unique goal. Your subclass's constructor can add
-        other arguments."""
         self.initial = initial
         self.goal = goal
 
     def actions(self, state):
-        """Return the actions that can be executed in the given
-        state. The result would typically be a list, but if there are
-        many actions, consider yielding them one at a time in an
-        iterator, rather than building them all at once."""
         raise NotImplementedError
 
     def result(self, state, action):
-        """Return the state that results from executing the given
-        action in the given state. The action must be one of
-        self.actions(state)."""
         raise NotImplementedError
 
     def goal_test(self, state):
-        """Return True if the state is a goal. The default method compares the
-        state to self.goal or checks for state in self.goal if it is a
-        list, as specified in the constructor. Override this method if
-        checking against a single self.goal is not enough."""
         if isinstance(self.goal, list):
             return is_in(state, self.goal)
         else:
             return state == self.goal
 
     def path_cost(self, c, state1, action, state2):
-        """Return the cost of a solution path that arrives at state2 from
-        state1 via action, assuming cost c to get up to state1. If the problem
-        is such that the path doesn't matter, this function will only look at
-        state2. If the path does matter, it will consider c and maybe state1
-        and action. The default method costs 1 for every step in the path."""
         return c + 1
 
     def value(self, state):
         raise NotImplementedError
 
 class CSP(Problem):
-    """This class describes finite-domain Constraint Satisfaction Problems.
-    A CSP is specified by the following inputs:
-        variables   A list of variables; each is atomic (e.g. int or string).
-        domains     A dict of {var:[possible_value, ...]} entries.
-        neighbors   A dict of {var:[var,...]} that for each variable lists
-                    the other variables that participate in constraints.
-        constraints A function f(A, a, B, b) that returns true if neighbors
-                    A, B satisfy the constraint when they have values A=a, B=b
-    """
-
     def __init__(self, variables, domains, neighbors, constraints):
-        """Construct a CSP problem. If variables is empty, it becomes domains.keys()."""
         super().__init__(())
         variables = variables or list(domains.keys())
         self.variables = variables
@@ -98,36 +68,25 @@ class CSP(Problem):
         self.nassigns = 0
 
     def assign(self, var, val, assignment):
-        """Add {var: val} to assignment; Discard the old value if any."""
         assignment[var] = val
         self.nassigns += 1
 
     def unassign(self, var, assignment):
-        """Remove {var: val} from assignment.
-        DO NOT call this if you are changing a variable to a new value;
-        just call assign for that."""
         if var in assignment:
             del assignment[var]
 
     def nconflicts(self, var, val, assignment):
-        """Return the number of conflicts var=val has with other variables."""
-
-        # Subclasses may implement this more efficiently
         def conflict(var2):
             return var2 in assignment and not self.constraints(var, val, var2, assignment[var2])
 
         return count(conflict(v) for v in self.neighbors[var])
 
     def display(self, assignment):
-        """Show a human-readable representation of the CSP."""
-        # Subclasses can print in a prettier way, or display with a GUI
         print(assignment)
 
     # These methods are for the tree and graph-search interface:
 
     def actions(self, state):
-        """Return a list of applicable actions: non conflicting
-        assignments to an unassigned variable."""
         if len(state) == len(self.variables):
             return []
         else:
@@ -193,12 +152,6 @@ class CSP(Problem):
 
 
 class UniversalDict:
-        """A universal dict maps any key to the same value. We use it here
-        as the domains dict for CSPs in which all variables have the same domain.
-        >>> d = UniversalDict(42)
-        >>> d['life']
-        42
-        """
 
         def __init__(self, value): self.value = value
 
@@ -341,11 +294,16 @@ def backtracking_search(csp, color, select_unassigned_variable=first_unassigned_
 
     result = backtrack({})
     assert result is None or csp.goal_test(result)
-    best_solution = []
-    color_dict = {k: v for v, k in enumerate(color)}
 
-    for i in range(len(result)):
-        best_solution.append(color_dict[result[str(i)]])
+    best_solution = []
+        
+    if result is not None:
+        color_dict = {k: v for v, k in enumerate(color)}
+        for i in range(len(result)):
+            best_solution.append(color_dict[result[str(i)]])
+    else:
+        for i in range(len(csp.variables)):
+            best_solution.append(0)
 
     return best_solution
 
@@ -356,11 +314,6 @@ def different_values_constraint(A, a, B, b):
 
 
 def MapColoringCSP(colors, matrix):
-    """Make a CSP for the problem of coloring a map with different colors
-    for any two adjacent regions. Arguments are a list of colors, and a
-    dict of {region: [neighbor,...]} entries. This dict may also be
-    specified as a string of the form defined by parse_neighbors."""
-
     neighbors = convertIntoStr(matrix)
     if isinstance(neighbors, str):
         neighbors = parse_neighbors(neighbors)
@@ -368,13 +321,6 @@ def MapColoringCSP(colors, matrix):
 
 
 def parse_neighbors(neighbors):
-    """Convert a string of the form 'X: Y Z; Y: Z' into a dict mapping
-    regions to neighbors. The syntax is a region name followed by a ':'
-    followed by zero or more region names, followed by ';', repeated for
-    each region name. If you say 'X: Y' you don't need 'Y: X'.
-    >>> parse_neighbors('X: Y Z; Y: Z') == {'Y': ['X', 'Z'], 'X': ['Y', 'Z'], 'Z': ['X', 'Y']}
-    True
-    """
     dic = defaultdict(list)
     specs = [spec.split(':') for spec in neighbors.split(';')]
     for (A, Aneighbors) in specs:
@@ -419,9 +365,9 @@ def convertIntoStr(matrix):
     
 
 def Run(matrix, color):
-        problem = MapColoringCSP(color, matrix)
-        best_solution = backtracking_search(problem, color, select_unassigned_variable=mrv, order_domain_values=lcv, inference=mac)
-        return best_solution
+    problem = MapColoringCSP(color, matrix)
+    best_solution = backtracking_search(problem, color, select_unassigned_variable=mrv, order_domain_values=lcv, inference=mac)
+    return best_solution
         
 
 if __name__ == "__main__":
@@ -433,6 +379,6 @@ if __name__ == "__main__":
                         [1, 0, 0, 1, 0, 1, 0],  # NSW
                         [1, 0, 0, 0, 1, 0, 0],  # V
                         [0, 0, 0, 0, 0, 0, 0]]  # T
-
+    color_names = ['Red','Green','Blue','Yellow']
     print(Run(australia_matrix, color_names))
     
