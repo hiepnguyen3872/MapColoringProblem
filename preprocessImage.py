@@ -6,19 +6,15 @@ from matplotlib import pyplot as plt
 
 
 class PreprocessImage:
-    def __init__(self, map_image_path):
-        self.MAP_IMAGE_PATH = map_image_path
-        self.ESCAPE_KEY_CHARACTER = 27
-        self.NO_COLOR = -1
+    def __init__(self, img):
+        self.MAP_IMAGE_PATH = 0
         self.NOT_MARKED = -1
         self.BACKGROUND_MARK = -2
-        self.SLEEP_TIME_IN_MILLISECONDS = 100
-        self.MINIMUM_BORDER_WIDTH_RATIO = 0.0001  # 0.15
+        self.MINIMUM_BORDER_WIDTH_RATIO = 0.0001
         self.IMPORTANT_COLOR_HIGH_THRESHOLD = 256 - 35
         self.IMPORTANT_COLOR_LOW_THRESHOLD = 35
         self.MINIMUM_REGION_AREA_RATIO = 0.0005
         self.MAXIMUM_NEIGHBOR_PIXEL_COLOR_DIFFERENCE = 50
-        self.INF = 10 ** 30
         self.MAXIMUM_NUMBER_OF_REGIONS = 1000
         self.COLORING_COLORS = [(0, 0, 255), (255, 0, 0), (0, 255, 255), (0, 255, 0)]
         self.DX = [-1, +1, 0, 0]
@@ -26,19 +22,18 @@ class PreprocessImage:
         self.SHARPEN_KERNEL = np.array([[-1, -1, -1], [-1, 9, -1], [-1, -1, -1]])
         self.MAXIMUM_IMAGE_WIDTH = 1000
         self.MAXIMUM_IMAGE_HEIGHT = 1000
-        self.image = cv2.imread(self.MAP_IMAGE_PATH, cv2.IMREAD_COLOR)
-        self.height = len(self.image)
-        self.width = len(self.image[0])
+        self.image = np.array(img)
+        self.height = self.image.shape[0]
+        self.width = self.image.shape[1]
         if self.width > self.MAXIMUM_IMAGE_WIDTH or self.height > self.MAXIMUM_IMAGE_HEIGHT:
             print("Error: please specify an image with smaller dimensions.")
             exit(0)
         self.total_area = self.width * self.height
-        self.mark = [[self.NOT_MARKED for i in range(self.width)] for j in range(self.height)]
+        self.mark = [[self.NOT_MARKED]*self.width]*self.height
         self.mark = np.array(self.mark)
         self.nodes = []
-        self.regions = [[] for i in range(self.MAXIMUM_NUMBER_OF_REGIONS)]
-        self.regions_border = [[] for i in range(self.MAXIMUM_NUMBER_OF_REGIONS)]
-        self.nodes_color = [self.NO_COLOR for i in range(self.MAXIMUM_NUMBER_OF_REGIONS)]
+        self.regions = []
+        self.regions_border = []
 
     class Node:
         def __init__(self, node_id, node_x, node_y):
@@ -65,35 +60,25 @@ class PreprocessImage:
         self.image[idx_hight[0, :], idx_hight[1, :]] = (255, 255, 255)
         self.mark[idx_hight[0, :], idx_hight[1, :]] = self.BACKGROUND_MARK # -2
 
-    def get_all_regions_pixels(self):
-        for y in range(self.height):
-            for x in range(self.width):
-                region_mark = self.mark[y][x]
-                self.regions[region_mark].append((x, y))
-                if self.is_on_border(x, y):
-                    self.regions_border[region_mark].append((x, y))
-
-    # map every pixel on image to region
     def whiten_background(self):
         idx_not_marked = np.where(self.mark == self.NOT_MARKED)
         idx_not_marked = np.array(idx_not_marked)
         self.image[idx_not_marked[0, :], idx_not_marked[1, :]] = (255, 255, 255)
 
-        idx_background = np.where(self.mark == self.NOT_MARKED)
-        idx_background = np.array(idx_background)
-        self.image[idx_background[0, :], idx_background[1, :]] = (255, 255, 255)
-
-    # find node on region
     def find_graph_nodes(self):
         for y in range(self.height):
             for x in range(self.width):
                 if self.mark[y][x] == self.NOT_MARKED:
-                    color_area = self.get_region_area(x, y, self.NOT_MARKED, len(self.nodes))
+                    idx = []
+                    idx_border = []
+                    color_area = self.get_region_area(x, y, self.NOT_MARKED, len(self.nodes), idx, idx_border)
                     if color_area > self.MINIMUM_REGION_AREA_RATIO * self.total_area:
                         self.nodes.append(self.Node(len(self.nodes), x, y))
+                        self.regions.append(idx)
+                        self.regions_border.append(idx_border)
                     else:
-                        self.get_region_area(x, y, len(self.nodes), self.NOT_MARKED)
-        self.get_all_regions_pixels()
+                        self.get_region_area(x, y, len(self.nodes), self.NOT_MARKED, idx, idx_border)
+        # self.get_all_regions_pixels()
 
     def is_inside(self, x, y):
         if x < 0 or x >= self.width or y < 0 or y >= self.height:
@@ -111,8 +96,6 @@ class PreprocessImage:
         return False
 
     def same_pixel_colors(self, x1, y1, x2, y2):
-        if not self.is_inside(x1, y1) or not self.is_inside(x2, y2):
-            return False
         b1, g1, r1 = self.image[y1][x1]
         b2, g2, r2 = self.image[y2][x2]
         r1, g1, b1 = int(r1), int(g1), int(b1)
@@ -120,14 +103,15 @@ class PreprocessImage:
         diff = abs(r1 - r2) + abs(g1 - g2) + abs(b1 - b2)
         return diff <= 3 * self.MAXIMUM_NEIGHBOR_PIXEL_COLOR_DIFFERENCE
 
-    def get_region_area(self, start_x, start_y, src_mark, dst_mark):
-        if not self.is_inside(start_x, start_y) or self.mark[start_y][start_x] != src_mark:
-            return 0
+    def get_region_area(self, start_x, start_y, src_mark, dst_mark, idx, idx_border):
         color_area = 0
         queue = [(start_x, start_y)]
         self.mark[start_y][start_x] = dst_mark
         while queue:
             x, y = queue.pop(0)
+            idx.append([x, y])
+            if self.is_on_border(x, y):
+                idx_border.append([x, y])
             self.mark[y][x] = dst_mark
             color_area += 1
             for k in range(4):
@@ -141,7 +125,6 @@ class PreprocessImage:
     def are_adjacent(self, node1: Node, node2: Node):
         start_x, start_y = node1.x, node1.y
         end_x, end_y = node2.x, node2.y
-        min_distance_sqr = self.INF
         u = self.regions_border[self.mark[start_y][start_x]]
         u = np.array(u)
 
@@ -174,12 +157,6 @@ class PreprocessImage:
         border_width_threshold = self.MINIMUM_BORDER_WIDTH_RATIO * (self.width * self.width + self.height * self.height)
         if min_distance_sqr >= border_width_threshold:
             return False
-        total_steps = int(2 * ((self.width * self.width + self.height * self.height) ** 0.5))
-        for i in range(total_steps):
-            x = int(start_x + i * dx / total_steps + 0.5)
-            y = int(start_y + i * dy / total_steps + 0.5)
-            if self.mark[y][x] >= 0 and (x != start_x or y != start_y) and (x != end_x or y != end_y):
-                return False
         return True
 
     def add_graph_edges(self):
@@ -210,11 +187,10 @@ class PreprocessImage:
         cv2.putText(self.image, str(node.id), (int(mean_x), int(mean_y)), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 1,
                     cv2.LINE_AA)
 
-    def colorize_map(self, path, best_solution):
+    def colorize_map(self, best_solution):
         for i in range(len(self.nodes)):
             self.change_region_color(self.nodes[i], self.COLORING_COLORS[best_solution[i]])
-            pass
-        cv2.imwrite(path, self.image)
+        return self.image
 
     def img_2_matrix(self):
         self.apply_threshold()
@@ -236,18 +212,22 @@ class PreprocessImage:
         return self.adj_matrix
 
 
-if __name__ == "__main__":
-    print('Please wait for preprocessing...')
-    start = time.time()
-    preImg = PreprocessImage("Images/us2.jpg")
-    preImg.img_2_matrix()
-    end = time.time()
-    print('Preprocessing finished.')
-    print("number node: ", len(preImg.nodes))
-    for node in preImg.nodes:
-        print("node: ", node.id)
-        for adj in node.adj:
-            print(adj)
-        print("--" * 10)
-    print("time execute: ", (end - start))
-    print("matrix", preImg.get_adjacency_matrix())
+# if __name__ == "__main__":
+#     print('Please wait for preprocessing...')
+#     start = time.time()
+#     preImg = PreprocessImage(cv2.imread("img/usa.jpg"))
+#     preImg.img_2_matrix()
+#     end = time.time()
+#     print('Preprocessing finished.')
+#     print("number node: ", len(preImg.nodes))
+#     for node in preImg.nodes:
+#         print("node: ", node.id)
+#         for adj in node.adj:
+#             print(adj)
+#         print("--" * 10)
+#     print("time execute: ", (end - start))
+#     print("matrix", preImg.get_adjacency_matrix())
+#     cv2.imshow("result", preImg.colorize_map([0]))
+#     cv2.waitKey(0)
+#     cv2.destroyAllWindows()
+
