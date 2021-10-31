@@ -11,17 +11,18 @@ from GeneticAlgorithm import GA_coloringmap
 from csp_ac3 import Run
 
 def main():
-    global FPSCLOCK, DISPLAYSURF, ILLU, MAP, BASICFONT, BUTTONS, MAXSTATE, COLOURS
+    global FPSCLOCK, DISPLAYSURF, ILLU, MAP, BASICFONT, BUTTONS, MAXSTATE, COLOURS, RUNTIMEFONT
 
     COLOURS = ['red', 'green', 'blue', 'yellow']
     
     pygame.init()
     FPSCLOCK = pygame.time.Clock()
     DISPLAYSURF = pygame.display.set_mode((MAPCOLORING.WINWIDTH, MAPCOLORING.WINHEIGHT))
-    BUTTONS = [('Upload Image'), ('Genetic Algorithm'), ('Forward Checking'), ('ARC3')]
+    BUTTONS = [('Upload Image'), ('Genetic Algorithm'), ('Forward Checking'), ('AC3')]
     MAXSTATE = len(BUTTONS) - 1
     pygame.display.set_caption('USA Coloring')
     BASICFONT = pygame.font.Font('assets/fonts/8-BITWONDER.TTF', 18)
+    RUNTIMEFONT = pygame.font.Font('assets/fonts/FreeSansBold.ttf', 18)
     illu = pygame.image.load('assets/images/usa_map.png')
     width = illu.get_width()
     height = illu.get_height()
@@ -44,6 +45,7 @@ def run():
     mapNeedsRedraw = True
     uploaded = True
     runAlgor = False
+    runtime = 0
 
     while True: 
         cursorMoveTo = 0
@@ -119,6 +121,7 @@ def run():
 
             pygame.display.update()
             
+            t0 = pygame.time.get_ticks()
             if state == 1:
                 output = GA_coloringmap(matrix, COLOURS)
             elif state == 2:
@@ -126,11 +129,12 @@ def run():
             elif state == 3:
                 output = Run(matrix, COLOURS)
             
-            if output is not None:
-                output_image = preprocessedImage.colorize_map(output)
-                map = cv2ImageToSurface(output_image)
-            
+            runtime = pygame.time.get_ticks() - t0
+            output_image = preprocessedImage.colorize_map(output)
+            map = cv2ImageToSurface(output_image)
+            menuNeedsRedraw = True
             mapNeedsRedraw = True
+            
             runAlgor = False
         
         DISPLAYSURF.fill(MAPCOLORING.WHITE)
@@ -141,7 +145,7 @@ def run():
                 state = MAXSTATE
             elif state > MAXSTATE:
                 state = 0
-            menuSurf = drawMenu(state)
+            menuSurf = drawMenu(state, runtime)
             menuNeedsRedraw = False
 
         menuSurfRect = menuSurf.get_rect()
@@ -193,7 +197,7 @@ def drawMap(map):
     mapSurf.blit(image, mapRect)
     return mapSurf
 
-def drawMenu(state):
+def drawMenu(state, runtime):
     menuSurf = pygame.Surface((MAPCOLORING.WINWIDTH * 9/25, MAPCOLORING.WINHEIGHT))
     menuSurf.fill(MAPCOLORING.BGCOLOR) 
     illustrationRect = ILLU.get_rect()
@@ -210,13 +214,22 @@ def drawMenu(state):
     cursorSurface, cursorRect = drawText('*', xtop - 25, ytop + 25 * state)
     menuSurf.blit(cursorSurface, cursorRect)
 
+    runtimeSurface, runtimeRect = drawRuntime('Runtime: ' + str(round(runtime/1000,5)) + ' s', 55, 500)
+    menuSurf.blit(runtimeSurface, runtimeRect)
+
     return menuSurf
 
+def drawRuntime(text, x, y):
+    textSurface = RUNTIMEFONT.render(text, True, MAPCOLORING.TEXTCOLOR)
+    textRect = textSurface.get_rect()
+    textRect.topleft = (x, y)
+    return textSurface, textRect
+
 def drawText(text, x, y):
-        textSurface = BASICFONT.render(text, True, MAPCOLORING.TEXTCOLOR)
-        textRect = textSurface.get_rect()
-        textRect.topleft = (x, y)
-        return textSurface, textRect
+    textSurface = BASICFONT.render(text, True, MAPCOLORING.TEXTCOLOR)
+    textRect = textSurface.get_rect()
+    textRect.topleft = (x, y)
+    return textSurface, textRect
 
 def cv2ImageToSurface(cv2Image):
     if cv2Image.dtype.name == 'uint16':
