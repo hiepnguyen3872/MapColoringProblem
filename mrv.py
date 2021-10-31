@@ -79,37 +79,28 @@ def findNextRegion():
 
 
 def mrv(x):
-    flag = True
+    # flag = True
     if x == -1:
-        print("-------------------------------")
+        # print("-------------------------------")
         for i in range(len(listOfRegion)):
-            print("Vertex {} has color {}".format(
-                i, colors[listOfRegion[i].color]))
+            # print("Vertex {} has color {}".format(
+            #     i, colors[listOfRegion[i].color]))
             ans.append(listOfRegion[i].color)
         return True
     for color in range(len(colors)):
         if checkContrain(x, color):
             if listOfRegion[x].setColor(color):
-                print('Vertex {} -> {}'.format(x, colors[color]))
-                flag = False
+                # print('Vertex {} -> {}'.format(x, colors[color]))
+                # flag = False
                 visitedRegion.add(x)
                 y = findNextRegion()
                 if mrv(y):
                     return True
                 visitedRegion.remove(x)
                 listOfRegion[x].restore(color)
-    if flag:
-        print('Vertex {} -> No suitable color'.format(x))
+    # if flag:
+    #     print('Vertex {} -> No suitable color'.format(x))
     return False
-
-
-def main():
-    setRegion()
-    x = findNextRegion()
-    if mrv(x) == False:
-        print("-------------------------------")
-        print('No solution')
-    print("-------------------------------")
 
 
 def run_mrv(_matrix, _colors):
@@ -123,7 +114,10 @@ def run_mrv(_matrix, _colors):
     listOfRegion = []
     visitedRegion = set()
     ans = []
-    main()
+    setRegion()
+    x = findNextRegion()
+    if mrv(x) == False:
+        return [0]*len(matrix)
     return ans
 
 
@@ -135,7 +129,5 @@ def run_mrv(_matrix, _colors):
 #      [0, 0, 1, 0, 1, 0, 1],
 #      [1, 0, 1, 0, 1, 1, 0]]
 
-# c = ['red', 'green', 'blue', 'yellow']
-# listOfRegion = []
-# visitedRegion = set()
-# print(run(m, c))
+# c = ['red', 'green', 'blue']
+# print(run_mrv(m, c))
