@@ -28,21 +28,13 @@ Run program
 $ python main.py
 ```
 
-## Introduce files
-File GeneticAlgorithm.py là file hiện thực Giải thuật di truyền.
-
-File csp_ac3.py là file hiện thực Giải thuật AC3.
-
-File mrv.py là file hiện thực Giải thuật quay kui kết hợp với kinh nghiệm.
-
-File constanst.py chứa các hằng số cho phần hiện thực giao diện.
-
-File preprocessImage.py là file xử lý ảnh đầu vào để chuyển ảnh thành ma trận.
-
-File main.py là file để giải chương trình.
-
-Các file txt là file hướng dẫn cho file cùng tên đuôi py.
-
-File ảnh đầu vào chứa trong folder image.
-
-File ảnh kết quả chứa trong folder result.
+## Files introduction
++ GeneticAlgorithm.py: implement Genetic Algorithm.
++ csp_ac3.py: implement AC3 Algorithm.
++ mrv.py: implement Backtracking Search with heuristic.
++ constanst.py: contain constansts for implementing UI.
++ preprocessImage.py: là file process the input image to convert the image into a matrix.
++ main.py: file to run the program.
++ txt files: declere declare interfaces for python files with corresponding name.
++ image folder: contain input image
++ result folder: contain result images.
