@@ -47,6 +47,7 @@ Main files:
 
 Additional files:
 
+- test.py: for testing without UI
 - txt files: declare interfaces for python files with corresponding name.
 - img folder: contain input image
 - result folder: contain result images.
