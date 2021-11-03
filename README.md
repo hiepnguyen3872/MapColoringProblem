@@ -42,7 +42,7 @@ Main files:
 - csp_ac3.py: implement AC3 Algorithm.
 - mrv.py: implement Backtracking Search with heuristic.
 - constanst.py: contain constants for implementing UI.
-- preprocessImage.py: là file process the input image to convert the image into a matrix.
+- preprocessImage.py: file process the input image to convert the image into a matrix.
 - main.py: file to run the program.
 
 Additional files:
