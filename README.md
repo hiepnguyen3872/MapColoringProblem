@@ -18,7 +18,7 @@
 Clone our source code
 
 ```sh
-$ git clone https://github.com/hiepnguyen3872/MapColoringProblem.git
+$ git clone https://github.com/hiepnguyen3872/MapColoringProblem
 $ cd MapColoringProblem
 ```
 
