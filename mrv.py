@@ -13,10 +13,6 @@ class Region:
     def setColor(self, color):
         if self.possibleColors[color] == False:
             return False
-        # for i in self.neighbourRegion:
-        #     if i not in visitedRegion:
-        #         if (listOfRegion[i].numberOfPossibleColors == 1) and (listOfRegion[i].possibleColors[color] == True):
-        #             return False
         self.color = color
         for i in self.neighbourRegion:
             if i not in visitedRegion:
@@ -35,9 +31,6 @@ class Region:
 
     def addNeibourRegion(self, l):
         self.neighbourRegion.append(l)
-
-    def removeColor(self, c):
-        self.possibleColors.remove(c)
 
     def __lt__(self, other):
         if self.numberOfPossibleColors > other.numberOfPossibleColors:
@@ -129,5 +122,5 @@ def run_mrv(_matrix, _colors):
 #      [0, 0, 1, 0, 1, 0, 1],
 #      [1, 0, 1, 0, 1, 1, 0]]
 
-# c = ['red', 'green', 'blue']
+# c = ['red', 'green', 'blue', 'yellow']
 # print(run_mrv(m, c))
