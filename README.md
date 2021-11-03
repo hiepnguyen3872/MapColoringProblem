@@ -50,3 +50,7 @@ Additional files:
 - txt files: declare interfaces for python files with corresponding name.
 - img folder: contain input image
 - result folder: contain result images.
+
+## Our final results
+- Video (Vietnamese language): https://youtu.be/GRKRozrD8Qo
+- Report: `report.pdf`
