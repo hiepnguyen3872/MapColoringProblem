@@ -1,0 +1,6 @@
+numpy
+pygame
+matplotlib
+opencv-python
+sortedcontainers
+tk
